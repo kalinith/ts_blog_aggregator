@@ -1,12 +1,20 @@
 import { readConfig, setUser } from "./config";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, RunCommand } from "./commands";
 
 function main() {
-  console.log("Hello, world!");
-  const config = readConfig();
-  setUser(config, "Neil");
-  const updatedConfig = readConfig();
-  console.log("Updated config:", updatedConfig);
-}
+  const commandRegistry: CommandsRegistry= {};
 
+  RegisterCommand(commandRegistry, "login", HandlerLogin);
+
+  const { argv } = require('node:process');
+  if (length(argv) > 2) {
+    console.log(argv)
+  }
+  // print process.argv
+  // argv.forEach((val, index) => {
+  // console.log(`${index}: ${val}`);
+  // });  
+
+}
 
 main();
