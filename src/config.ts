@@ -7,13 +7,13 @@ export type Config = {
     currentUserName : string;
 };
 
-export function setUser(config: Config, userName: string): Config {
+export function setUser(userName: string) {
     if (userName.trim() === "") {
         throw new Error("User name cannot be empty");
     }
+    const config = readConfig();
     config.currentUserName = userName;
     writeConfig(config);
-    return config;
 };
 
 export function readConfig(): Config {
@@ -33,8 +33,9 @@ export function readConfig(): Config {
 };
 
 function getConfigFilePath(): string {
+    const configFileName = ".gatorconfig.json";
     const homeDir = os.homedir();
-    const configFilePath = path.join(homeDir, "ts_blog_aggregator", "gatorconfig.json");
+    const configFilePath = path.join(homeDir, configFileName);
     return configFilePath;
 };
 
@@ -49,7 +50,8 @@ function writeConfig(cfg: Config): void {
     if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
     }
-    fs.writeFileSync(configFilePath, JSON.stringify(rawConfig));
+    const data = JSON.stringify(rawConfig, null, 2);
+    fs.writeFileSync(configFilePath, data);
 };
 
 function validateConfig(rawConfig: any): Config {
