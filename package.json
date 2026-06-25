@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx ./src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,8 +14,5 @@
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
-  "type": "module",
-  "scripts": {
-    "start": "tsx ./src/index.ts"
-  }
+  "type": "module"
 }
