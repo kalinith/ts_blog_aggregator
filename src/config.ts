@@ -8,11 +8,12 @@ export type Config = {
 };
 
 export function setUser(userName: string) {
-    if (userName.trim() === "") {
+    const cleanedName = userName.trim();
+    if (cleanedName === "") {
         throw new Error("User name cannot be empty");
     }
     const config = readConfig();
-    config.currentUserName = userName;
+    config.currentUserName = cleanedName;
     writeConfig(config);
 };
 

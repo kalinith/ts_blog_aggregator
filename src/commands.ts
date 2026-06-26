@@ -1,6 +1,6 @@
 import { setUser } from "./config";
 
-type CommandHandler = (cmdName: string, ...args: string[]) => void;
+export type CommandHandler = (cmdName: string, ...args: string[]) => void;
 
 export type CommandsRegistry = {
     [cmdName: string]: CommandHandler;
@@ -16,10 +16,9 @@ export function RegisterCommand(registry: CommandsRegistry, cmdName: string, han
 
 export function RunCommand(registry: CommandsRegistry, cmdName: string, ...args: string[]) {
     if (!registry[cmdName]) {
-        console.log(`command "${cmdName}" is invalid`);
+        throw new Error(`command "${cmdName}" is invalid`);
     }
-    const result = registry[cmdName](cmdName, ...args);
-    console.log(result);
+    registry[cmdName](cmdName, ...args);
 };
 
 export function HandlerLogin(cmdName: string, ...args: string[]): void {

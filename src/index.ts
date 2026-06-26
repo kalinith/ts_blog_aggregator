@@ -1,20 +1,32 @@
-import { readConfig, setUser } from "./config";
-import { CommandsRegistry, HandlerLogin, RegisterCommand, RunCommand } from "./commands";
+import { argv, exit } from "node:process";
+//import { readConfig, setUser } from "./config";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand } from "./commands";
 
 function main() {
   const commandRegistry: CommandsRegistry= {};
+  const commands: Record<string, Function> = {
+    "login": HandlerLogin,
+  };
 
-  RegisterCommand(commandRegistry, "login", HandlerLogin);
+  (Object.entries(commands) as [string, CommandHandler][]).forEach(([key, value]) => {
+    RegisterCommand(commandRegistry, key, value);
+  });
 
-  const { argv } = require('node:process');
-  if (length(argv) > 2) {
-    console.log(argv)
+  const cmdName = argv[2];
+  const args = argv.slice(3);
+
+  if (cmdName === undefined || cmdName === "") {
+    console.log(`no command entered`);
+    exit(1);
   }
-  // print process.argv
-  // argv.forEach((val, index) => {
-  // console.log(`${index}: ${val}`);
-  // });  
+  try {
+    RunCommand(commandRegistry, cmdName, ...args);
 
+  } catch (error) {
+    console.error(`error running command: ${error}`)
+    exit(1);
+  };
+  
 }
 
 main();
