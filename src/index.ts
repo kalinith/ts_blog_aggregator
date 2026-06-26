@@ -2,7 +2,7 @@ import { argv, exit } from "node:process";
 //import { readConfig, setUser } from "./config";
 import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand } from "./commands";
 
-function main() {
+function async main() {
   const commandRegistry: CommandsRegistry= {};
   const commands: Record<string, Function> = {
     "login": HandlerLogin,
@@ -20,13 +20,13 @@ function main() {
     exit(1);
   }
   try {
-    RunCommand(commandRegistry, cmdName, ...args);
+    await RunCommand(commandRegistry, cmdName, ...args);
 
   } catch (error) {
     console.error(`error running command: ${error}`)
     exit(1);
   };
-  
+  process.exit(0);
 }
 
 main();
