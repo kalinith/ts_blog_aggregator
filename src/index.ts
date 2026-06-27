@@ -1,11 +1,11 @@
 import { argv, exit } from "node:process";
-//import { readConfig, setUser } from "./config";
-import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand } from "./commands";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister } from "./commands";
 
-function async main() {
+async function main() {
   const commandRegistry: CommandsRegistry= {};
   const commands: Record<string, Function> = {
     "login": HandlerLogin,
+    "register": HandlerRegister
   };
 
   (Object.entries(commands) as [string, CommandHandler][]).forEach(([key, value]) => {
@@ -26,7 +26,7 @@ function async main() {
     console.error(`error running command: ${error}`)
     exit(1);
   };
-  process.exit(0);
+  exit(0);
 }
 
 main();

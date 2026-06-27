@@ -1,9 +1,14 @@
 import { db } from "..";
-import { users } from "../schema";
+import { users } from "../schema/schema";
+import { eq } from "drizzle-orm";
+import { FirstOrUndefined } from "./utils";
 
 export async function createUser(name: string) {
   const [result] = await db.insert(users).values({ name: name }).returning();
   return result;
 }
 
-// INSERT INTO <table> (<columns>) VALUES (<values>) RETURNING *;
+export async function getUser(name:string) {
+  const result = await db.select().from(users).where(eq(users.name, name));
+  return FirstOrUndefined(result);
+}
