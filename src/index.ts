@@ -1,11 +1,12 @@
 import { argv, exit } from "node:process";
-import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister } from "./commands";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister, HandlerReset } from "./commands";
 
 async function main() {
   const commandRegistry: CommandsRegistry= {};
   const commands: Record<string, Function> = {
     "login": HandlerLogin,
-    "register": HandlerRegister
+    "register": HandlerRegister,
+    "reset": HandlerReset
   };
 
   (Object.entries(commands) as [string, CommandHandler][]).forEach(([key, value]) => {

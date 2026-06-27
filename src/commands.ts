@@ -1,5 +1,6 @@
+import { exists } from "drizzle-orm";
 import { setUser } from "./config";
-import { createUser, getUser } from "./lib/db/queries/user";
+import { createUser, deleteUsers, getUser } from "./lib/db/queries/user";
 // import { users } from "./schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
@@ -48,4 +49,14 @@ export async function HandlerRegister(cmdName: string, ...args: string[]): Promi
     setUser(user.name);
     console.log(`user with name "${userName}" was created with the following data:\n`);
     console.log(user);
+};
+
+export async function HandlerReset(cmdName: string, ...args: string[]): Promise<void> {
+    try {
+        await deleteUsers();
+        console.log(`User table cleared.`);
+    } catch {
+        console.log(`failed to clear user table.`);
+        process.exit(1);
+    }
 };
