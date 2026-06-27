@@ -1,6 +1,6 @@
-import { exists } from "drizzle-orm";
-import { setUser } from "./config";
-import { createUser, deleteUsers, getUser } from "./lib/db/queries/user";
+import { exists, isConfig } from "drizzle-orm";
+import { readConfig, setUser } from "./config";
+import { createUser, deleteUsers, getUser, getUsers } from "./lib/db/queries/user";
 // import { users } from "./schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
@@ -14,7 +14,7 @@ export function RegisterCommand(registry: CommandsRegistry, cmdName: string, han
         throw new Error(`expected value for command name`);
     };
     registry[cmdName] = handler;
-    console.log(`successfully registered command "${cmdName}"`);
+    //console.log(`successfully registered command "${cmdName}"`);
 };
 
 export async function RunCommand(registry: CommandsRegistry, cmdName: string, ...args: string[]): Promise<void> {
@@ -60,3 +60,18 @@ export async function HandlerReset(cmdName: string, ...args: string[]): Promise<
         process.exit(1);
     }
 };
+
+export async function HandlerUsers(cmdName: string, ...args: string[]): Promise<void> {
+    const config = readConfig();
+    const users = await getUsers();
+    const currentUser = config.currentUserName;
+    for (const user of users) {
+        if (user.name === currentUser) {
+            console.log(`* ${user.name} (current)`);
+        } else {
+            console.log(`* ${user.name}`);
+        }
+        
+    }
+
+}
