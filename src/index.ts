@@ -1,5 +1,5 @@
 import { argv, exit } from "node:process";
-import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister, HandlerReset, HandlerUsers, HandlerAgg, HandlerAddFeed } from "./commands";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister, HandlerReset, HandlerUsers, HandlerAgg, HandlerAddFeed, HandlerGetAllFeeds } from "./commands";
 
 async function main() {
   const commandRegistry: CommandsRegistry= {};
@@ -9,7 +9,8 @@ async function main() {
     "reset": HandlerReset,
     "users": HandlerUsers,
     "agg": HandlerAgg,
-    "addfeed": HandlerAddFeed
+    "addfeed": HandlerAddFeed,
+    "feeds": HandlerGetAllFeeds
   };
 
   (Object.entries(commands) as [string, CommandHandler][]).forEach(([key, value]) => {

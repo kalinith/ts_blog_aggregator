@@ -1,8 +1,8 @@
 import { exists, isConfig } from "drizzle-orm";
 import { readConfig, setUser } from "./config";
-import { createUser, deleteUsers, getUser, getUsers } from "./lib/db/queries/user";
+import { createUser, deleteUsers, getUser, getUserById, getUsers } from "./lib/db/queries/user";
 import { fetchFeed } from "./feeds";
-import { createFeed } from "./lib/db/queries/feeds";
+import { createFeed, getFeeds } from "./lib/db/queries/feeds";
 import { feeds, users } from "./lib/db/schema/schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
@@ -103,8 +103,19 @@ export async function HandlerAddFeed(cmdName: string, ...args: string[]): Promis
 
 }
 
+export async function HandlerGetAllFeeds(cmdName: string, ...args: string[]): Promise<void> {
+    const feeds = await getFeeds();
+    for (const feed of feeds) {
+        const user = await getUserById(feed.userId);
+        if (user === undefined) {
+            throw new Error(`user does not exist`);
+        }
+        printFeed(feed, user);
+    };
+
+}
+
 function printFeed(feed: Feed, user: User) {
-    console.log(`a new feed was added witht he following details:`);
     console.log(`Name: ${feed.name}`);
     console.log(`URL: ${feed.url}`);
     console.log(`Added by: ${user.name}`);
