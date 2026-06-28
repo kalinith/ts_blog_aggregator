@@ -1,6 +1,7 @@
 import { exists, isConfig } from "drizzle-orm";
 import { readConfig, setUser } from "./config";
 import { createUser, deleteUsers, getUser, getUsers } from "./lib/db/queries/user";
+import { fetchFeed } from "./feeds";
 // import { users } from "./schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
@@ -74,4 +75,13 @@ export async function HandlerUsers(cmdName: string, ...args: string[]): Promise<
         
     }
 
+}
+
+export async function HandlerAgg(cmdName: string, ...args: string[]): Promise<void> {
+    // if (args.length === 0 || args[0] === "") {
+    //     throw new Error(`URL is required for Aggregator`);
+    // };
+    const feedURL = "https://www.wagslane.dev/index.xml";
+    const result = await fetchFeed(feedURL);
+    console.log(result);
 }
