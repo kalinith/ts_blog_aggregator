@@ -2,9 +2,12 @@ import { exists, isConfig } from "drizzle-orm";
 import { readConfig, setUser } from "./config";
 import { createUser, deleteUsers, getUser, getUsers } from "./lib/db/queries/user";
 import { fetchFeed } from "./feeds";
-// import { users } from "./schema";
+import { createFeed } from "./lib/db/queries/feeds";
+import { feeds, users } from "./lib/db/schema/schema";
 
 export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
+export type Feed = typeof feeds.$inferSelect;
+export type User = typeof users.$inferSelect;
 
 export type CommandsRegistry = {
     [cmdName: string]: CommandHandler;
@@ -84,4 +87,25 @@ export async function HandlerAgg(cmdName: string, ...args: string[]): Promise<vo
     const feedURL = "https://www.wagslane.dev/index.xml";
     const result = await fetchFeed(feedURL);
     console.log(result);
+}
+
+export async function HandlerAddFeed(cmdName: string, ...args: string[]): Promise<void> {
+    if (args.length === 0 || args[0] === "" || args[1] === "") {
+         throw new Error(`URL and name are required for Aggregator`);
+    };
+    const config = readConfig();
+    const user = await getUser(config.currentUserName);
+    if (!user || user.id === "") {
+        throw new Error(`user not found: ${config.currentUserName}`);
+    }
+    const feed = await createFeed(args[0], args[1], user.id);
+    printFeed(feed, user);
+
+}
+
+function printFeed(feed: Feed, user: User) {
+    console.log(`a new feed was added witht he following details:`);
+    console.log(`Name: ${feed.name}`);
+    console.log(`URL: ${feed.url}`);
+    console.log(`Added by: ${user.name}`);
 }
