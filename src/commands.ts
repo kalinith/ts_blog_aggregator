@@ -4,7 +4,7 @@ import { createUser, deleteUsers, getUser, getUserById, getUsers } from "./lib/d
 import { fetchFeed } from "./feeds";
 import { createFeed, getFeed, getFeeds } from "./lib/db/queries/feeds";
 import { feeds, users } from "./lib/db/schema/schema";
-import { createFeedFollow, getFeedFollows, getFeedFollowsForUser } from "./lib/db/queries/feedfollows";
+import { createFeedFollow, deleteFeedFollows, getFeedFollows, getFeedFollowsForUser, getFeedFollowsUserFeed } from "./lib/db/queries/feedfollows";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -123,10 +123,25 @@ export async function HandlerFollow(cmdName: string, user: User, ...args: string
     console.log(feedFollows);
 }
 
+export async function HandlerUnFollow(cmdName: string, user: User, ...args: string[]): Promise<void> {
+    if (args.length === 0 || args[0] === "") {
+         throw new Error(`URL required for unfollowing`);
+    };
+    const feed = await getFeed(args[0]);
+    const feedFollow = await getFeedFollowsUserFeed(user.id, feed.id);
+    if (feedFollow === undefined) {
+        console.log(`feed not followed`);
+        return;
+    }
+    await deleteFeedFollows(feedFollow.id);
+    console.log(`feed successfully unfollowed`);
+}
+
 export async function HandlerFollowing(cmdName: string, user: User, ...args: string[]): Promise<void> {
     const feeds = await getFeedFollowsForUser(user.name);
     if (feeds.length === 0) {
-        throw new Error(`no feeds found`)
+        console.log(`no feeds found`);
+        return;
     }
     for (const feed of feeds) {
         console.log(feed);
