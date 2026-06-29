@@ -1,5 +1,5 @@
 import { db } from "..";
-import { feeds } from "../schema/schema";
+import { feeds, users } from "../schema/schema";
 import { eq } from "drizzle-orm";
 //import { FirstOrUndefined } from "./utils";
 
@@ -22,4 +22,23 @@ export async function getFeed(url: string) {
         throw new Error(`URL not found, create feed first: ${url}`);
     }
     return feed;
+}
+
+export async function markFeedFetched(feedId: string) {
+    const dateTime = new Date();
+    const feed = await db.update(feeds).set({
+        updatedAt: dateTime,
+        lastFetchedAt: dateTime
+    }).where(eq(feeds.id,feedId)).returning();
+    if (feed === undefined) {
+        console.log(`no feeds updated`);
+        return;
+    }
+    console.log(`updated ${feed.length} feeds`);
+}
+
+export async function getNextFeedToFetch() {
+    if () {
+        
+    }
 }
