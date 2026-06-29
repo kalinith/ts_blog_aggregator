@@ -6,13 +6,19 @@ import { createFeed, getFeed, getFeeds } from "./lib/db/queries/feeds";
 import { feeds, users } from "./lib/db/schema/schema";
 import { createFeedFollow, getFeedFollows, getFeedFollowsForUser } from "./lib/db/queries/feedfollows";
 
-export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
-
 export type CommandsRegistry = {
     [cmdName: string]: CommandHandler;
 };
+
+export type CommandHandler = (cmdName: string, ...args: string[]) => Promise<void>;
+export type middlewareLoggedIn = (handler: UserCommandHandler) => CommandHandler;
+type UserCommandHandler = (
+  cmdName: string,
+  user: User,
+  ...args: string[]
+) => Promise<void>;
 
 export function RegisterCommand(registry: CommandsRegistry, cmdName: string, handler: CommandHandler) {
     if (cmdName === "") {
@@ -76,29 +82,19 @@ export async function HandlerUsers(cmdName: string, ...args: string[]): Promise<
         } else {
             console.log(`* ${user.name}`);
         }
-        
     }
-
 }
 
 export async function HandlerAgg(cmdName: string, ...args: string[]): Promise<void> {
-    // if (args.length === 0 || args[0] === "") {
-    //     throw new Error(`URL is required for Aggregator`);
-    // };
     const feedURL = "https://www.wagslane.dev/index.xml";
     const result = await fetchFeed(feedURL);
     console.log(result);
 }
 
-export async function HandlerAddFeed(cmdName: string, ...args: string[]): Promise<void> {
+export async function HandlerAddFeed(cmdName: string, user: User, ...args: string[]): Promise<void> {
     if (args.length === 0 || args[0] === "" || args[1] === "") {
          throw new Error(`URL and name are required for Aggregator`);
     };
-    const config = readConfig();
-    const user = await getUser(config.currentUserName);
-    if (!user || user.id === "") {
-        throw new Error(`user not found: ${config.currentUserName}`);
-    }
     const feed = await createFeed(args[0], args[1], user.id);
     const feedadded = await createFeedFollow(feed.id, user.id);
     printFeed(feed, user);
@@ -115,12 +111,7 @@ export async function HandlerGetAllFeeds(cmdName: string, ...args: string[]): Pr
     };
 }
 
-export async function HandlerFollow(cmdName: string, ...args: string[]): Promise<void> {
-    const config = readConfig();
-    const user = await getUser(config.currentUserName);
-    if (!user || user.id === "") {
-        throw new Error(`user not found: ${config.currentUserName}`);
-    }
+export async function HandlerFollow(cmdName: string, user: User, ...args: string[]): Promise<void> {
     if (args.length === 0 || args[0] === "") {
          throw new Error(`URL required for following`);
     };
@@ -132,18 +123,24 @@ export async function HandlerFollow(cmdName: string, ...args: string[]): Promise
     console.log(feedFollows);
 }
 
-export async function HandlerFollowing(cmdName: string, ...args: string[]): Promise<void> {
-    const config = readConfig();
-    const user = await getUser(config.currentUserName);
-    if (!user || user.id === "") {
-        throw new Error(`user not found: ${config.currentUserName}`);
-    }
+export async function HandlerFollowing(cmdName: string, user: User, ...args: string[]): Promise<void> {
     const feeds = await getFeedFollowsForUser(user.name);
     if (feeds.length === 0) {
         throw new Error(`no feeds found`)
     }
     for (const feed of feeds) {
         console.log(feed);
+    }
+}
+
+export function middlewareLoggedIn(handler: UserCommandHandler): CommandHandler {
+    return async function (cmdName: string, ...args: string[]): Promise<void> {
+        const config = readConfig();
+        const user = await getUser(config.currentUserName);
+        if (!user || user.id === "") {
+            throw new Error(`user not found: ${config.currentUserName}`);
+        }
+        return handler(cmdName, user, ...args);
     }
 }
 
