@@ -5,6 +5,7 @@ import { createFeed, getFeed, getFeeds, getNextFeedToFetch, markFeedFetched } fr
 import { feeds, users } from "./lib/db/schema/schema";
 import { createFeedFollow, deleteFeedFollows, getFeedFollows, getFeedFollowsForUser, getFeedFollowsUserFeed } from "./lib/db/queries/feedfollows";
 import { parseDuration } from "./lib/time";
+import { createPost, getPostsForUser } from "./lib/db/queries/posts";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -172,6 +173,19 @@ export async function HandlerFollowing(cmdName: string, user: User, ...args: str
     }
 }
 
+export async function HandlerBrowse(cmdName: string, user: User, ...args: string[]): Promise<void> {
+    // Add the browse command to get the latest posts for the user. It should take an optional "limit" parameter.
+    // If it's not provided, default the limit to 2.
+    var feedCount = 2;
+    if (args.length === 1 && !Number.isNaN(args[0])) {
+        feedCount = Number(args[0]);
+    };
+    const posts = await getPostsForUser(user.id, feedCount);
+    for (const post of posts) {
+        console.log(post);
+    }
+}
+
 export function middlewareLoggedIn(handler: UserCommandHandler): CommandHandler {
     return async function (cmdName: string, ...args: string[]): Promise<void> {
         const config = readConfig();
@@ -199,7 +213,7 @@ async function scrapeFeeds() {
     const feedBody = await fetchFeed(feed.url);
     await markFeedFetched(feed.id);
     for (const item of feedBody.channel.item) {
-        console.log(item.title);
+        await createPost(feed.id, item);
     }
     console.log(`finished fetching feed from ${feed.url}`)
 }
@@ -209,3 +223,4 @@ function handleError(err: unknown) {
     `Error scraping feeds: ${err instanceof Error ? err.message : err}`,
   );
 }
+

@@ -1,5 +1,5 @@
 import { argv, exit } from "node:process";
-import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister, HandlerReset, HandlerUsers, HandlerAgg, HandlerAddFeed, HandlerGetAllFeeds, HandlerFollow, HandlerFollowing, middlewareLoggedIn, HandlerUnFollow } from "./commands";
+import { CommandsRegistry, HandlerLogin, RegisterCommand, CommandHandler, RunCommand, HandlerRegister, HandlerReset, HandlerUsers, HandlerAgg, HandlerAddFeed, HandlerGetAllFeeds, HandlerFollow, HandlerFollowing, middlewareLoggedIn, HandlerUnFollow, HandlerBrowse } from "./commands";
 
 async function main() {
   const commandRegistry: CommandsRegistry= {};
@@ -13,7 +13,8 @@ async function main() {
     "feeds": HandlerGetAllFeeds,
     "follow": middlewareLoggedIn(HandlerFollow),
     "following": middlewareLoggedIn(HandlerFollowing),
-    "unfollow": middlewareLoggedIn(HandlerUnFollow)
+    "unfollow": middlewareLoggedIn(HandlerUnFollow),
+    "browse": middlewareLoggedIn(HandlerBrowse)
   };
 
   (Object.entries(commands) as [string, CommandHandler][]).forEach(([key, value]) => {

@@ -20,3 +20,12 @@ export function parseDuration(durationStr: string) {
       return;
   }
 }
+
+export function timeCheck(dateString:string): Date | null {
+  const d = new Date(dateString);
+  const valid = !Number.isNaN(d.getTime());
+  if (valid) {
+    return d;
+  }
+  return null;
+}

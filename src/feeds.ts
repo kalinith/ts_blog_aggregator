@@ -1,6 +1,6 @@
 import { XMLParser} from "fast-xml-parser";
 
-type RSSFeed = {
+export type RSSFeed = {
   channel: {
     title: string;
     link: string;
@@ -9,7 +9,7 @@ type RSSFeed = {
   };
 };
 
-type RSSItem = {
+export type RSSItem = {
   title: string;
   link: string;
   description: string;
@@ -29,10 +29,12 @@ export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
         throw new Error(`failed to fetch feed: ${response.status}`);
     }
     const rssText = await response.text();
+    console.log(`1`);
     const parser = new XMLParser({
         processEntities: false,
     });
     const jObj = parser.parse(rssText);
+    console.log(`2`);
     if (!jObj.rss || !jObj.rss.channel) {
         throw new Error("channel field missing from feed");
     }
