@@ -1,7 +1,7 @@
 import { db } from "..";
 import { feeds, users } from "../schema/schema";
-import { eq } from "drizzle-orm";
-//import { FirstOrUndefined } from "./utils";
+import { eq, sql } from "drizzle-orm";
+import { FirstOrUndefined } from "./utils";
 
 export async function createFeed(name: string, url: string, userId: string) {
     const [result] = await db.insert(feeds).values({
@@ -38,7 +38,6 @@ export async function markFeedFetched(feedId: string) {
 }
 
 export async function getNextFeedToFetch() {
-    if () {
-        
-    }
+    const feed = await db.select().from(feeds).orderBy(sql`${feeds.lastFetchedAt} ASC NULLS FIRST`);
+    return FirstOrUndefined(feed);
 }

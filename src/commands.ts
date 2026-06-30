@@ -1,10 +1,10 @@
-import { exists, isConfig } from "drizzle-orm";
 import { readConfig, setUser } from "./config";
 import { createUser, deleteUsers, getUser, getUserById, getUsers } from "./lib/db/queries/user";
 import { fetchFeed } from "./feeds";
-import { createFeed, getFeed, getFeeds } from "./lib/db/queries/feeds";
+import { createFeed, getFeed, getFeeds, getNextFeedToFetch, markFeedFetched } from "./lib/db/queries/feeds";
 import { feeds, users } from "./lib/db/schema/schema";
 import { createFeedFollow, deleteFeedFollows, getFeedFollows, getFeedFollowsForUser, getFeedFollowsUserFeed } from "./lib/db/queries/feedfollows";
+import { parseDuration } from "./lib/time";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -86,9 +86,33 @@ export async function HandlerUsers(cmdName: string, ...args: string[]): Promise<
 }
 
 export async function HandlerAgg(cmdName: string, ...args: string[]): Promise<void> {
-    const feedURL = "https://www.wagslane.dev/index.xml";
-    const result = await fetchFeed(feedURL);
-    console.log(result);
+    if (args.length === 0 || args[0] === "") {
+         console.log(`duration missing – use format 1h 30m 15s or 3500ms`);
+         return;
+    };
+
+    const timeArg = args[0];
+    const timeBetweenRequests = parseDuration(timeArg);
+    if (!timeBetweenRequests) {
+        throw new Error(
+        `invalid duration: ${timeArg} – use format 1h 30m 15s or 3500ms`,
+        );
+    }
+
+    console.log(`Collecting feeds every ${timeBetweenRequests} ms`);
+    scrapeFeeds().catch(handleError);
+
+    const interval = setInterval(() => {
+        scrapeFeeds().catch(handleError);
+    }, timeBetweenRequests);
+
+    await new Promise<void>((resolve) => {
+        process.on("SIGINT", () => {
+            console.log("Shutting down feed aggregator...");
+            clearInterval(interval);
+            resolve();
+        });
+    });
 }
 
 export async function HandlerAddFeed(cmdName: string, user: User, ...args: string[]): Promise<void> {
@@ -163,4 +187,25 @@ function printFeed(feed: Feed, user: User) {
     console.log(`Name: ${feed.name}`);
     console.log(`URL: ${feed.url}`);
     console.log(`Added by: ${user.name}`);
+    console.log(`Last Fetched: ${feed.lastFetchedAt}`);
+}
+
+async function scrapeFeeds() {
+    const feed = await getNextFeedToFetch();
+        if (feed === undefined) {
+        console.log(`no feeds to update`);
+        return;
+    }
+    const feedBody = await fetchFeed(feed.url);
+    await markFeedFetched(feed.id);
+    for (const item of feedBody.channel.item) {
+        console.log(item.title);
+    }
+    console.log(`finished fetching feed from ${feed.url}`)
+}
+
+function handleError(err: unknown) {
+  console.error(
+    `Error scraping feeds: ${err instanceof Error ? err.message : err}`,
+  );
 }

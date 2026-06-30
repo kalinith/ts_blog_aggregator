@@ -17,6 +17,7 @@ type RSSItem = {
 };
 
 export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
+    console.log(`Fetching feed from: ${feedURL}`);
     const response = await fetch(feedURL, {
         method: "GET",
         mode: "cors",
@@ -28,7 +29,6 @@ export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
         throw new Error(`failed to fetch feed: ${response.status}`);
     }
     const rssText = await response.text();
-    console.log(rssText);
     const parser = new XMLParser({
         processEntities: false,
     });
