@@ -19,10 +19,9 @@ export type RSSItem = {
 export async function fetchFeed(feedURL: string): Promise<RSSFeed> {
     console.log(`Fetching feed from: ${feedURL}`);
     const response = await fetch(feedURL, {
-        method: "GET",
-        mode: "cors",
         headers: {
-            "User-Agent": "gator",
+        "User-Agent": "gator",
+        accept: "application/rss+xml",
         },
     });
     if (!response.ok) {
